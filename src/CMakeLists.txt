@@ -16,13 +16,13 @@ else()
   add_compile_options(-Wall -Wextra -pedantic)
 endif()
 
-set(PLUGIN_PATH ./)
-get_filename_component(PLUGIN_PATH_REAL ${PLUGIN_PATH} REALPATH)
-set(PETSIRD_dir ${PLUGIN_PATH_REAL}/../PETSIRD/cpp/generated)
+set(CURRENT_PATH ./)
+get_filename_component(CURRENT_PATH_REAL ${CURRENT_PATH} REALPATH)
+set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp/generated)
 get_filename_component(PETSIRD_dir_REAL ${PETSIRD_dir} REALPATH)
 add_subdirectory(${PETSIRD_dir_REAL} PETSIRD_generated)
 
-define_target_exe(yrtpet_petsird_generate_scanner src/GenerateScannerFiles.cpp)
+add_executable(yrtpet_petsird_generate_scanner petsird_yrtpet_reconstruct.cpp)
 
 target_link_libraries(yrtpet_petsird_generate_scanner PUBLIC petsird_generated)
 target_include_directories(yrtpet_petsird_generate_scanner PUBLIC ${PETSIRD_dir})
