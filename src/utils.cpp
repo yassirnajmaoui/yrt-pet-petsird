@@ -118,7 +118,7 @@ std::tuple<std::shared_ptr<DetCoord>, std::vector<size_t>, size_t, size_t>
 	// Return DetCoord
 	auto detCoord = std::make_shared<DetCoordOwned>();
 	detCoord->allocate(points.size());
-	std::vector<size_t> originalIndices{points.size()};
+	std::vector<size_t> originalIndices(points.size());
 	size_t detectorId = 0;
 
 	for (size_t ring_i = 0; ring_i < numRings; ring_i++)
@@ -160,9 +160,32 @@ std::tuple<float, float, float, Vector3D>
 	{
 		for (size_t j = i + 1; j < vertices.size(); ++j)
 		{
-			Vector3D edgeVector = {vertices[j].c[0] - vertices[i].c[0],
-			                       vertices[j].c[1] - vertices[i].c[1],
-			                       vertices[j].c[2] - vertices[i].c[2]};
+			const auto& a = vertices[i];
+			const auto& b = vertices[j];
+
+			int same = 0;
+			if (std::abs(a.c[0] - b.c[0]) < EPSILON)
+			{
+				same++;
+			}
+			if (std::abs(a.c[1] - b.c[1]) < EPSILON)
+			{
+				same++;
+			}
+			if (std::abs(a.c[2] - b.c[2]) < EPSILON)
+			{
+				same++;
+			}
+
+			// Only consider pairs that differ in exactly one dimension (i.e.,
+			//  share an edge)
+			if (same != 2)
+			{
+				continue;
+			}
+
+			Vector3D edgeVector = {b.c[0] - a.c[0], b.c[1] - a.c[1],
+			                       b.c[2] - a.c[2]};
 			float distance = std::sqrt(edgeVector.x * edgeVector.x +
 			                           edgeVector.y * edgeVector.y +
 			                           edgeVector.z * edgeVector.z);
@@ -189,8 +212,10 @@ std::tuple<float, float, float, Vector3D>
 	if (largestDistanceUnitVector.z > EPSILON)
 	{
 		std::cerr << "Warning: The crystals given have an orientation with a Z "
-		             "component."
-		          << std::endl;
+		             "component: ["
+		          << largestDistanceUnitVector.x << ", "
+		          << largestDistanceUnitVector.y << ", "
+		          << largestDistanceUnitVector.z << "]" << std::endl;
 	}
 
 	// Find the size in the Z dimension
@@ -210,7 +235,7 @@ std::tuple<float, float, float, Vector3D>
 			zMax = std::max(zMax, p.c[2]);
 		}
 	}
-	float crystalSizeZ = zMax - zMin;
+	float crystalSize_z = zMax - zMin;
 
 	// Get the transaxial size (by first getting the transaxial direction)
 	Vector3D zDir{0, 0, 1};
@@ -237,8 +262,8 @@ std::tuple<float, float, float, Vector3D>
 			maxProj = std::max(maxProj, proj);
 		}
 	}
-	float crystalSizeTrans = maxProj - minProj;
+	float crystalSize_trans = maxProj - minProj;
 
-	return {crystalSizeZ, crystalSizeTrans, largestDistance,
+	return {crystalSize_z, crystalSize_trans, largestDistance,
 	        largestDistanceUnitVector};
 }

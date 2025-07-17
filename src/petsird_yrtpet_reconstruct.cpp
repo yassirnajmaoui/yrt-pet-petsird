@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 	std::cout << "Input PETSIRD file: " << input_fname << std::endl;
 
 	/*
-	 * Assumtions made by this program:
+	 * Assumptions made by this program:
 	 * - There is no DOI (This needs to be fixed!)
 	 * - The axial dimension of the scanner is the Z dimension
 	 * - The axial dimension in the definition of the crystal box shape is Z
@@ -197,12 +197,6 @@ int main(int argc, char** argv)
 					    std::max(maxDistanceCenter, distanceCenter);
 				}
 
-				// TODO: Compute:
-				//  - Get the rotation part of
-				//  - Crystal size (z, trans, depth)
-				//  - Dets per ring
-				//  - Number of rings
-				//  - Number of DOI layers
 				detectorIdx++;
 			}
 		}
@@ -210,12 +204,9 @@ int main(int argc, char** argv)
 
 	float axialFOV = maxZ - minZ;
 
-
 	// Prepare detCoord
 	auto [detCoord, detOriginalIndices, detsPerRing, numRings] =
 	    yrt::pet::petsird::toDetCoord(crystalPositions, crystalOrientations);
-
-	// TODO: reshuffle detectors
 
 	if (!outScannerLUT_fname.empty())
 	{
@@ -235,8 +226,8 @@ int main(int argc, char** argv)
 	                detsPerRing,
 	                numRings,
 	                /*Placeholder: */ 1,
-	                numRings - 1,
-	                1,
+	                /*Placeholder: */ numRings - 1,
+	                /*Placeholder: */ 1,
 	                1};
 	scanner.setDetectorSetup(detCoord);
 
