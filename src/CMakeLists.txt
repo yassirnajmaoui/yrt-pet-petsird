@@ -4,6 +4,7 @@ project(yrt-pet-petsird VERSION 0.7.2)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_package(OpenMP REQUIRED)
 
 #Set the build type to Release if not specified
 if (NOT CMAKE_BUILD_TYPE)
@@ -27,6 +28,8 @@ add_subdirectory(${PETSIRD_dir_REAL} PETSIRD_generated)
 add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp)
 
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC petsird_generated)
+target_link_libraries(petsird_yrtpet_reconstruct PUBLIC yrtpet)
+target_link_libraries(petsird_yrtpet_reconstruct PUBLIC OpenMP::OpenMP_CXX)
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir})
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/..)
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/../helpers/include)
