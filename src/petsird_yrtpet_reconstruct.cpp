@@ -20,7 +20,7 @@
 
 int main(int argc, char** argv)
 {
-	CLI::App app{"YourApp description"};
+	CLI::App app{"PETSIRD reconstruction executable using YRT-PET"};
 
 	// Variables to hold parsed values
 	bool useGPU;
