@@ -60,10 +60,62 @@ namespace yrt::pet::petsird
 							    petsird_helpers::expand_detection_bin_pair(
 							        mr_scannerInfo, {mtype0, mtype1},
 							        promptEvent.detection_bins);
+							det_id_t d0flatIdx = mr_correspondence.getFlatIndex(
+							    mtype0, d0_expanded.module_index,
+							    d0_expanded.element_index);
+							det_id_t d1flatIdx = mr_correspondence.getFlatIndex(
+							    mtype1, d1_expanded.module_index,
+							    d1_expanded.element_index);
+
+							promptEvent.tof_idx;  // TODO: Store TOF value in ps
+
+							// Add to the cumulative vectors
+							m_timestamps.emplace_back(currentTime);
+							m_d0s.emplace_back(d0flatIdx);
+							m_d1s.emplace_back(d1flatIdx);
 						}
 					}
 				}
 			}
 		}
 	}
+
+	det_id_t PETSIRDListMode::getDetector1(bin_t id) const
+	{
+		return m_d0s[id];
+	}
+
+	det_id_t PETSIRDListMode::getDetector2(bin_t id) const
+	{
+		return m_d1s[id];
+	}
+
+	det_pair_t PETSIRDListMode::getDetectorPair(bin_t id) const
+	{
+		return {m_d0s[id], m_d1s[id]};
+	}
+
+	size_t PETSIRDListMode::count() const
+	{
+		return m_d0s.size();
+	}
+
+	timestamp_t PETSIRDListMode::getTimestamp(bin_t id) const
+	{
+		return m_timestamps[id];
+	}
+
+	bool PETSIRDListMode::hasTOF() const
+	{
+		// TODO: Figure out how to read TOF value in ps from idx
+		return false;
+	}
+
+	float PETSIRDListMode::getTOFValue(bin_t id) const
+	{
+		(void) id;
+		return 0;  // Will be ignored because of hasTOF
+	}
+
+
 }  // namespace yrt::pet::petsird

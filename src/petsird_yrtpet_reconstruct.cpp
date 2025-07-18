@@ -1,6 +1,7 @@
 #include "datastruct/projection/ListMode.hpp"
 #include "datastruct/scanner/Scanner.hpp"
 #include "utils/Utilities.hpp"
+#include "utils/ReconstructionUtils.hpp"
 
 #include "PETSIRDListMode.hpp"
 #include "utils.hpp"
@@ -22,9 +23,11 @@ int main(int argc, char** argv)
 	CLI::App app{"YourApp description"};
 
 	// Variables to hold parsed values
+	bool useGPU;
 	std::string input_fname;
 	int numSubsets = 0;
 	int numIterations = 0;
+	std::string imageParams_fname;
 	std::string psfKernel_fname;
 	std::string outScannerLUT_fname;
 	std::string outScannerJSON_fname;
@@ -38,7 +41,15 @@ int main(int argc, char** argv)
 
 	app.add_option("--num-subsets", numSubsets, "Number of subsets");
 
+	if (Util::compiledWithCuda())
+	{
+		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
+	}
+
 	app.add_option("--num-iterations", numIterations, "Number of iterations");
+
+	app.add_option("-p, --params", imageParams_fname, "Image parameters file")
+		->check(CLI::ExistingFile);
 
 	app.add_option("--psf", psfKernel_fname, "PSF kernel file")
 	    ->check(CLI::ExistingFile);
@@ -96,7 +107,25 @@ int main(int argc, char** argv)
 	//  Read the header and get the scanner
 	yrt::pet::petsird::TimeBlockCollection timeBlocks;
 	timeBlocks.reserve(50ull << 10);
+
 	const bool readingTimeBlock = reader.ReadTimeBlocks(timeBlocks);
+	if (!readingTimeBlock)
+	{
+		throw std::runtime_error("Error while reading time blocks");
+	}
+
+	yrt::pet::petsird::PETSIRDListMode lm(scanner, scannerInfo,
+	                                      correspondenceMap, timeBlocks);
+
+
+	// Initialize reconstruction
+	auto osem = Util::createOSEM(scanner, useGPU);
+
+	// Read image parameters
+	ImageParams params{imageParams_fname};
+	//osem->setImageParams(params);
+
+
 
 	return 0;
 }
