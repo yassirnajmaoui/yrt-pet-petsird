@@ -29,6 +29,7 @@ int main(int argc, char** argv)
 	int numIterations = 0;
 	std::string imageParams_fname;
 	std::string psfKernel_fname;
+	std::string attImage_fname;
 	std::string outScannerLUT_fname;
 	std::string outScannerJSON_fname;
 	std::string outSensImage_fname;
@@ -55,6 +56,9 @@ int main(int argc, char** argv)
 	    ->check(CLI::ExistingFile);
 
 	app.add_option("--psf", psfKernel_fname, "PSF kernel file")
+	    ->check(CLI::ExistingFile);
+
+	app.add_option("--att", attImage_fname, "Attenuation image file")
 	    ->check(CLI::ExistingFile);
 
 	app.add_option("--out-scanner-lut", outScannerLUT_fname,
@@ -138,6 +142,13 @@ int main(int argc, char** argv)
 	if (!psfKernel_fname.empty())
 	{
 		osem->addImagePSF(psfKernel_fname);
+	}
+
+	std::unique_ptr<Image> attImage;
+	if (!attImage_fname.empty())
+	{
+		attImage = std::make_unique<ImageOwned>(attImage_fname);
+		osem->setAttenuationImage(attImage.get());
 	}
 
 	std::vector<std::unique_ptr<Image>> sensImages;
