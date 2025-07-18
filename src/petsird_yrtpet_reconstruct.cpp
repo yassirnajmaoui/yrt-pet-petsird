@@ -88,6 +88,7 @@ int main(int argc, char** argv)
 	//  - Read TOF resolution from the PETSIRD file and add it in "addTOF"
 	//  - Convert TOF indices into values in picoseconds and use them for recon
 	//  - Add possibility to provide an attenuation image
+	//  - Add normalisation
 
 
 	// Read PETSIRD FILE
