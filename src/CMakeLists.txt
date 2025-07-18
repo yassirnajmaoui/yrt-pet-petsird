@@ -19,6 +19,30 @@ else ()
     add_compile_options(-Wall -Wextra -pedantic)
 endif ()
 
+# Use CUDA or not
+option(USE_CUDA "Enable CUDA" ON)
+if (USE_CUDA)
+    # Set cuda architectures
+    set(YRTPET_CUDA_ARCHITECTURES "native")
+    if (NOT "$ENV{CUDAARCHS}" STREQUAL "")
+        set(YRTPET_CUDA_ARCHITECTURES $ENV{CUDAARCHS})
+        message("Found CUDA Architectures from CUDAARCHS environment variable")
+    elseif (NOT "${CMAKE_CUDA_ARCHITECTURES}" STREQUAL "")
+        set(YRTPET_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+        message("Found CUDA Architectures from CMAKE_CUDA_ARCHITECTURES build option")
+    else ()
+        message("Using CUDA Architecture from native GPU")
+    endif ()
+
+    set(CMAKE_CUDA_ARCHITECTURES ${YRTPET_CUDA_ARCHITECTURES})
+
+    find_package(CUDAToolkit REQUIRED)
+    enable_language(CUDA)
+    add_compile_definitions(BUILD_CUDA)
+
+endif (USE_CUDA)
+
+
 set(CURRENT_PATH ./)
 get_filename_component(CURRENT_PATH_REAL ${CURRENT_PATH} REALPATH)
 set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp/generated)
@@ -32,6 +56,11 @@ add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp ${YRTPE
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC petsird_generated)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC yrtpet)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC OpenMP::OpenMP_CXX)
+
+if (USE_CUDA)
+    target_link_libraries(petsird_yrtpet_reconstruct PRIVATE CUDA::cudart CUDA::cuda_driver)
+endif (USE_CUDA)
+
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir})
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/..)
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/../helpers/include)

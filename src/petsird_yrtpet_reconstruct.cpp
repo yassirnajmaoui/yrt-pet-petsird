@@ -1,7 +1,7 @@
 #include "datastruct/projection/ListMode.hpp"
 #include "datastruct/scanner/Scanner.hpp"
-#include "utils/Utilities.hpp"
 #include "utils/ReconstructionUtils.hpp"
+#include "utils/Utilities.hpp"
 
 #include "PETSIRDListMode.hpp"
 #include "utils.hpp"
@@ -39,17 +39,19 @@ int main(int argc, char** argv)
 	    ->required()
 	    ->check(CLI::ExistingFile);
 
-	app.add_option("--num-subsets", numSubsets, "Number of subsets");
-
 	if (Util::compiledWithCuda())
 	{
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
 
-	app.add_option("--num-iterations", numIterations, "Number of iterations");
+	app.add_option("--num-subsets", numSubsets, "Number of subsets");
+
+	app.add_option("--num-iterations", numIterations, "Number of iterations")
+	    ->required();
 
 	app.add_option("-p, --params", imageParams_fname, "Image parameters file")
-		->check(CLI::ExistingFile);
+	    ->required()
+	    ->check(CLI::ExistingFile);
 
 	app.add_option("--psf", psfKernel_fname, "PSF kernel file")
 	    ->check(CLI::ExistingFile);
@@ -62,7 +64,8 @@ int main(int argc, char** argv)
 	app.add_option("--out-sens", outSensImage_fname,
 	               "Output sensitivity image file");
 	app.add_option("--out-recon", outImage_fname,
-	               "Output reconstructed image file");
+	               "Output reconstructed image file")
+	    ->required();
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -79,7 +82,12 @@ int main(int argc, char** argv)
 	 * - All crystals have the same dimensions
 	 * */
 
-	// TODO: Make this script compatible with HDF5 files
+	// TODO:
+	//  - Make this script compatible with HDF5 files
+	//  - Read TOF resolution from the PETSIRD file and add it in "addTOF"
+	//  - Convert TOF indices into values in picoseconds and use them for recon
+	//  - Add possibility to provide an attenuation image
+
 
 	// Read PETSIRD FILE
 	auto reader = petsird::binary::PETSIRDReader(input_fname);
@@ -117,15 +125,32 @@ int main(int argc, char** argv)
 	yrt::pet::petsird::PETSIRDListMode lm(scanner, scannerInfo,
 	                                      correspondenceMap, timeBlocks);
 
-
 	// Initialize reconstruction
 	auto osem = Util::createOSEM(scanner, useGPU);
+	osem->setListModeEnabled(true);
 
 	// Read image parameters
 	ImageParams params{imageParams_fname};
-	//osem->setImageParams(params);
+	osem->setImageParams(params);
 
+	if(!psfKernel_fname.empty())
+	{
+		osem->addImagePSF(psfKernel_fname);
+	}
 
+	std::vector<std::unique_ptr<Image>> sensImages;
+	osem->generateSensitivityImages(sensImages, outSensImage_fname);
+
+	osem->setSensitivityImages(sensImages);
+
+	osem->setDataInput(&lm);
+
+	osem->num_MLEM_iterations = numIterations;
+	osem->num_OSEM_subsets = numSubsets;
+
+	osem->reconstruct(outImage_fname);
+
+	std::cout << "Done." << std::endl;
 
 	return 0;
 }
