@@ -11,8 +11,8 @@ namespace yrt::pet::petsird
 	    const DetectorCorrespondenceMap& pr_correspondence,
 	    const TimeBlockCollection& pr_timeBlocks)
 	    : ListMode(pr_scanner),
-	      mr_scannerInfo(pr_scannerInfo),
-	      mr_correspondence(pr_correspondence)
+	      mr_correspondence(pr_correspondence),
+	      mr_scannerInfo(pr_scannerInfo)
 	{
 		readTimeBlocks(pr_timeBlocks);
 	}

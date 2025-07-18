@@ -2,6 +2,7 @@
 #pragma once
 
 #include "datastruct/projection/ListMode.hpp"
+#include "DetectorCorrespondenceMap.hpp"
 #include "utils.hpp"
 
 namespace yrt::pet::petsird

@@ -3,6 +3,7 @@
 //
 
 #include "utils.hpp"
+#include "DetectorCorrespondenceMap.hpp"
 #include "petsird_helpers/geometry.h"
 
 #include <xtensor-blas/xlinalg.hpp>
@@ -11,7 +12,7 @@
 ::petsird::Coordinate
     yrt::pet::petsird::getCentroid(const ::petsird::BoxShape& box)
 {
-	constexpr size_t numCorners = box.corners.size();
+	const size_t numCorners = box.corners.size();
 
 	::petsird::Coordinate centroid{};
 	for (size_t i = 0; i < numCorners; ++i)
@@ -39,23 +40,150 @@ petsird::Coordinate yrt::pet::petsird::transforms_coord(
 	return ::petsird_helpers::geometry::homogeneous_to_coordinate(hom);
 }
 
-std::tuple<std::shared_ptr<DetCoord>,
-           yrt::pet::petsird::DetectorCorrespondenceMap, size_t, size_t>
-    yrt::pet::petsird::toDetCoord(const std::vector<Vector3D>& points,
-                                  const std::vector<Vector3D>& orientations)
+std::tuple<Scanner, yrt::pet::petsird::DetectorCorrespondenceMap>
+    yrt::pet::petsird::toScanner(
+        const ::petsird::ScannerInformation& scannerInfo)
 {
 	struct IndexedPoint
 	{
 		Vector3D point;
-		size_t originalIndex;
+		Vector3D orientation;
+		DetectorCorrespondenceMap::DetectorKey originalKey;
 	};
 
-	std::vector<IndexedPoint> indexedPoints;
-	indexedPoints.resize(points.size());
-	for (size_t i = 0; i < points.size(); ++i)
+	DetectorCorrespondenceMap correspondenceMap;
+
+	const ::petsird::ScannerGeometry& scannerGeom =
+	    scannerInfo.scanner_geometry;
+
+	// Get detecting elements
+	::petsird::TypeOfModule numTypeOfModules =
+	    scannerGeom.replicated_modules.size();
+	size_t totalNumDets = 0;
+	for (::petsird::TypeOfModule typeOfModule_i = 0;
+	     typeOfModule_i < numTypeOfModules; typeOfModule_i++)
 	{
-		indexedPoints[i] = {points[i], i};
+		totalNumDets +=
+		    petsird_helpers::get_num_det_els(scannerInfo, typeOfModule_i);
 	}
+
+	// PETSIRD "dimensions": type, module, detector
+	// Reshuffled to: (DOI), ring, transaxial (YRT-PET dimensions)
+
+	std::vector<IndexedPoint> indexedPoints;
+	indexedPoints.resize(totalNumDets);
+
+	// Crystal properties
+	float crystalSize_z, crystalSize_trans, crystalDepth;
+
+	// Flat index for the detectors in the flat unshuffled LUT
+	det_id_t detId = 0;
+
+	// Properties to measure
+	bool isFirstCrystal = true;
+	float minZ{};
+	float maxZ{};
+	float maxDistanceCenter{};
+
+	for (::petsird::TypeOfModule typeOfModule_i = 0;
+	     typeOfModule_i < numTypeOfModules; typeOfModule_i++)
+	{
+		// Number of modules of this type
+		const auto& replicatedModuleType =
+		    scannerGeom.replicated_modules[typeOfModule_i];
+		size_t numModules = replicatedModuleType.NumberOfObjects();
+
+		// Number of detectors in the modules of this type
+		const auto& detectors = replicatedModuleType.object.detecting_elements;
+		size_t numDetectors = detectors.NumberOfObjects();
+
+		// Get the centroid of the detectors of this module type (reference)
+		const auto& currentDetectorShape = detectors.object.shape;
+		auto centroid = getCentroid(currentDetectorShape);
+
+		Vector3D crystalOrientation_yrt;
+		std::tie(crystalSize_z, crystalSize_trans, crystalDepth,
+		         crystalOrientation_yrt) = getCrystalInfo(currentDetectorShape);
+		::petsird::Coordinate crystalOrientation{{crystalOrientation_yrt.x,
+		                                          crystalOrientation_yrt.y,
+		                                          crystalOrientation_yrt.z}};
+
+		for (uint32_t module_i = 0; module_i < numModules; module_i++)
+		{
+			auto moduleTransform = replicatedModuleType.transforms[module_i];
+
+			// Get the detector orientations (We assume here that the detectors
+			//  in a module are parallel)
+
+			for (uint32_t detector_i = 0; detector_i < numDetectors;
+			     detector_i++)
+			{
+				auto detectorTransform = detectors.transforms[detector_i];
+
+				// Transform crystal centroid
+				auto totalTransform =
+				    petsird_helpers::geometry::mult_transforms(
+				        {moduleTransform, detectorTransform});
+				auto transformedDetectorCentroid =
+				    transforms_coord(totalTransform, centroid);
+
+				const float crystalX = transformedDetectorCentroid.c[0];
+				const float crystalY = transformedDetectorCentroid.c[1];
+				const float crystalZ = transformedDetectorCentroid.c[2];
+
+				// Assign position to the detCoord
+				indexedPoints[detId].point.x = crystalX;
+				indexedPoints[detId].point.y = crystalY;
+				indexedPoints[detId].point.z = crystalZ;
+
+				// Remove rotation from the transform
+				auto translationFreeMatrix = totalTransform.matrix;
+				translationFreeMatrix[3] = 0;
+				translationFreeMatrix[7] = 0;
+				translationFreeMatrix[11] = 0;
+				::petsird::RigidTransformation crystalRotation{
+				    translationFreeMatrix};
+
+				// Assign orientation to the detCoord
+				auto rotatedCrystalOrientation =
+				    transforms_coord(crystalRotation, crystalOrientation);
+				indexedPoints[detId].orientation.x =
+				    rotatedCrystalOrientation.c[0];
+				indexedPoints[detId].orientation.y =
+				    rotatedCrystalOrientation.c[1];
+				indexedPoints[detId].orientation.z =
+				    rotatedCrystalOrientation.c[2];
+
+				float distanceCenter = std::sqrt(std::pow(crystalX, 2.0f) +
+				                                 std::pow(crystalY, 2.0f) +
+				                                 std::pow(crystalZ, 2.0f));
+
+				if (isFirstCrystal)
+				{
+					minZ = crystalZ;
+					maxZ = crystalZ;
+					maxDistanceCenter = distanceCenter;
+					isFirstCrystal = false;
+				}
+				else
+				{
+					minZ = std::min(crystalZ, minZ);
+					maxZ = std::max(crystalZ, maxZ);
+					maxDistanceCenter =
+					    std::max(maxDistanceCenter, distanceCenter);
+				}
+
+				// Add the properties for the correspondence afterwards
+				indexedPoints[detId].originalKey =
+				    DetectorCorrespondenceMap::DetectorKey{
+				        typeOfModule_i, module_i, detector_i};
+
+				detId++;
+			}
+		}
+	}
+
+	float axialFOV = maxZ - minZ;
 
 	// Step 1: Sort by Z
 	std::sort(indexedPoints.begin(), indexedPoints.end(),
@@ -69,7 +197,7 @@ std::tuple<std::shared_ptr<DetCoord>,
 
 	for (const auto& pt : indexedPoints)
 	{
-		float z = pt.point.z;
+		const float z = pt.point.z;
 		if (std::abs(z - lastZ) > EPSILON)
 		{
 			rings.push_back(currentRing);
@@ -86,17 +214,17 @@ std::tuple<std::shared_ptr<DetCoord>,
 	// Check that all rings have the same number of detectors
 	bool isFirstRing = true;
 	size_t numRings = rings.size();
-	size_t detsInRing{};
+	size_t detsPerRing{};
 	for (size_t ring_i = 0; ring_i < numRings; ring_i++)
 	{
 		if (isFirstRing)
 		{
-			detsInRing = rings[ring_i].size();
+			detsPerRing = rings[ring_i].size();
 			isFirstRing = false;
 		}
 		else
 		{
-			if (rings[ring_i].size() != detsInRing)
+			if (rings[ring_i].size() != detsPerRing)
 			{
 				throw std::runtime_error(
 				    "Not all rings have the name number of detectors: ring_i=" +
@@ -119,32 +247,50 @@ std::tuple<std::shared_ptr<DetCoord>,
 
 	// Return DetCoord
 	auto detCoord = std::make_shared<DetCoordOwned>();
-	detCoord->allocate(points.size());
-	DetectorCorrespondenceMap originalIndices(points.size());
-	size_t detectorId = 0;
+	detCoord->allocate(totalNumDets);
+	detId = 0;
 
 	for (size_t ring_i = 0; ring_i < numRings; ring_i++)
 	{
-		detsInRing = rings[ring_i].size();
-		for (size_t det_i = 0; det_i < detsInRing; det_i++)
+		detsPerRing = rings[ring_i].size();
+		for (size_t det_i = 0; det_i < detsPerRing; det_i++)
 		{
-			detCoord->setXpos(detectorId, rings[ring_i][det_i].point.x);
-			detCoord->setYpos(detectorId, rings[ring_i][det_i].point.y);
-			detCoord->setZpos(detectorId, rings[ring_i][det_i].point.z);
+			const auto& indexedPoint = rings[ring_i][det_i];
 
-			const size_t originalIndex = rings[ring_i][det_i].originalIndex;
-			const Vector3D originalOrientation = orientations[originalIndex];
-			originalIndices[detectorId] = originalIndex;
+			// Add to DetCoord object
+			detCoord->setXpos(detId, indexedPoint.point.x);
+			detCoord->setYpos(detId, indexedPoint.point.y);
+			detCoord->setZpos(detId, indexedPoint.point.z);
+			detCoord->setXorient(detId, indexedPoint.orientation.x);
+			detCoord->setYorient(detId, indexedPoint.orientation.y);
+			detCoord->setZorient(detId, indexedPoint.orientation.z);
 
-			detCoord->setXorient(detectorId, originalOrientation.x);
-			detCoord->setYorient(detectorId, originalOrientation.y);
-			detCoord->setZorient(detectorId, originalOrientation.z);
+			// Add to correspondence
+			correspondenceMap.addMapping(indexedPoint.originalKey.type,
+			                             indexedPoint.originalKey.module,
+			                             indexedPoint.originalKey.det, detId);
 
-			detectorId++;
+			detId++;
 		}
 	}
 
-	return {std::move(detCoord), originalIndices, detsInRing, numRings};
+	// Get Scanner properties
+	// How to get the minimum angle difference and maximum ring difference ?
+	Scanner scanner{scannerInfo.model_name,
+	                axialFOV,
+	                crystalSize_z,
+	                crystalSize_trans,
+	                crystalDepth,
+	                maxDistanceCenter,
+	                detsPerRing,
+	                numRings,
+	                /*Placeholder: */ 1,
+	                /*Placeholder: */ numRings - 1,
+	                /*Placeholder: */ 1,
+	                1};
+	scanner.setDetectorSetup(detCoord);
+
+	return {scanner, correspondenceMap};
 }
 
 std::tuple<float, float, float, Vector3D>

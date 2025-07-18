@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "datastruct/scanner/DetCoord.hpp"
+#include "DetectorCorrespondenceMap.hpp"
+#include "datastruct/scanner/Scanner.hpp"
 #include "petsird_helpers.h"
 #include "types.h"
 
@@ -9,7 +10,6 @@ namespace yrt::pet::petsird
 {
 	// tolerance of 0.1 micron for these calculations:
 	constexpr float EPSILON = 1e-4;
-	using DetectorCorrespondenceMap = std::vector<size_t>;
 	using TimeBlockCollection = std::vector<::petsird::TimeBlock>;
 
 	// Apply transformation to a coordinate
@@ -19,14 +19,10 @@ namespace yrt::pet::petsird
 	::petsird::Coordinate getCentroid(const ::petsird::BoxShape& box);
 
 	// Returns:
-	// - The DetCoord object for the scanner
+	// - The Scanner
 	// - The original detector indices after the reshuffling
-	// - Detectors per ring
-	// - Number of rings
-	std::tuple<std::shared_ptr<DetCoord>, DetectorCorrespondenceMap, size_t,
-	           size_t>
-	    toDetCoord(const std::vector<Vector3D>& points,
-	               const std::vector<Vector3D>& orientations);
+	std::tuple<Scanner, DetectorCorrespondenceMap>
+	    toScanner(const ::petsird::ScannerInformation& scannerInfo);
 	// Function that computes crystal depth, size in Z, and size in
 	//  transaxial and gives you the orientation of the crystal
 	// Returns:
