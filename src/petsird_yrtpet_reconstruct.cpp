@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 	std::string outScannerLUT_fname;
 	std::string outScannerJSON_fname;
 	std::string outSensImage_fname;
+	std::string sensImage_fname;
 	std::string outImage_fname;
 
 	// Add options
@@ -66,6 +67,8 @@ int main(int argc, char** argv)
 	// app.add_option("--out-scanner-json", outScannerJSON_fname,
 	//                "Output scanner JSON file");
 
+	app.add_option("--sens", sensImage_fname,
+	               "Pre-existing sensitivity image filename");
 	app.add_option("--out-sens", outSensImage_fname,
 	               "Output sensitivity image file");
 	app.add_option("--out-recon", outImage_fname,
@@ -152,7 +155,14 @@ int main(int argc, char** argv)
 	}
 
 	std::vector<std::unique_ptr<Image>> sensImages;
-	osem->generateSensitivityImages(sensImages, outSensImage_fname);
+	if (!sensImage_fname.empty())
+	{
+		sensImages.push_back(std::make_unique<ImageOwned>(sensImage_fname));
+	}
+	else
+	{
+		osem->generateSensitivityImages(sensImages, outSensImage_fname);
+	}
 
 	osem->setSensitivityImages(sensImages);
 
