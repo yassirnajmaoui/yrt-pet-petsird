@@ -40,4 +40,12 @@ namespace petsird_helpers
 	    const ScannerInformation& scanner,
 	    const std::array<TypeOfModule, 2>& type_of_module_pair,
 	    const std::array<DetectionBin, 2>& detection_bin_pair);
+
+
+	float get_detection_efficiency_from_pair(
+	    const ScannerInformation& scanner,
+	    const TypeOfModulePair& type_of_module_pair,
+	    const std::array<DetectionBin, 2>& module_index_pair,
+	    const std::array<uint32_t, 2>& element_index_pair);
+
 }  // namespace petsird_helpers

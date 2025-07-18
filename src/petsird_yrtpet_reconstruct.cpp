@@ -4,6 +4,7 @@
 #include "yrt-pet/utils/Utilities.hpp"
 
 #include "PETSIRDListMode.hpp"
+#include "PETSIRDNorm.hpp"
 #include "utils.hpp"
 
 #include "petsird/binary/protocols.h"
@@ -132,6 +133,8 @@ int main(int argc, char** argv)
 
 	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo, correspondenceMap,
 	                                 timeBlocks);
+
+	yrt::pet::petsird::PETSIRDNorm norm(scanner, scannerInfo, correspondenceMap);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);

@@ -452,3 +452,13 @@ std::array<petsird::ExpandedDetectionBin, 2>
 	}
 	return result;
 }
+
+float petsird_helpers::get_detection_efficiency_from_pair(
+    const ScannerInformation& scanner,
+    const std::array<TypeOfModule, 2>& type_of_module_pair,
+    const std::array<uint32_t, 2>& module_index_pair,
+    const std::array<uint32_t, 2>& element_index_pair)
+{
+	// TODO: Implement this based on the equivalent in petsird_helpers.h
+	return -1.0;
+}
