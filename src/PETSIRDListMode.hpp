@@ -7,7 +7,7 @@
 
 namespace yrt::pet::petsird
 {
-	class PETSIRDListMode : public ListMode
+	class PETSIRDListMode final : public ListMode
 	{
 	public:
 		PETSIRDListMode(const Scanner& pr_scanner,
