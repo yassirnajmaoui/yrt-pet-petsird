@@ -44,7 +44,8 @@ int main(int argc, char** argv)
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
 
-	app.add_option("--num-subsets", numSubsets, "Number of subsets");
+	app.add_option("--num-subsets", numSubsets, "Number of subsets")
+	    ->default_val(1);
 
 	app.add_option("--num-iterations", numIterations, "Number of iterations")
 	    ->required();
@@ -133,7 +134,7 @@ int main(int argc, char** argv)
 	ImageParams params{imageParams_fname};
 	osem->setImageParams(params);
 
-	if(!psfKernel_fname.empty())
+	if (!psfKernel_fname.empty())
 	{
 		osem->addImagePSF(psfKernel_fname);
 	}
