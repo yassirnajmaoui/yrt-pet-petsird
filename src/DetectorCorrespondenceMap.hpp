@@ -26,42 +26,18 @@ namespace yrt::pet::petsird
 
 		// Set the correspondence
 		void addMapping(uint32_t type, uint32_t module, uint32_t det,
-		                det_id_t value)
-		{
-			const DetectorKey key{type, module, det};
-			map[key] = value;
-			reverseMap[value] = key;
-		}
+		                det_id_t value);
 
 		// Get the correspondence
 		det_id_t getFlatIndex(uint32_t type, uint32_t module,
-		                      uint32_t det) const
-		{
-			const DetectorKey key{type, module, det};
-			const auto it = map.find(key);
-			if (it == map.end())
-			{
-				throw std::out_of_range("Detector not found in map.");
-			}
-			return it->second;
-		}
+		                      uint32_t det) const;
 
 		// Get (type, module, det) from value
 		std::tuple<uint32_t, uint32_t, uint32_t>
-		    getDetectorFromFlatIndex(det_id_t value) const
-		{
-			const auto it = reverseMap.find(value);
-			if (it == reverseMap.end())
-				throw std::out_of_range("Value not found.");
-			const auto& key = it->second;
-			return std::make_tuple(key.type, key.module, key.det);
-		}
+		    getDetectorFromFlatIndex(det_id_t value) const;
 
 		// Check if a detector is present
-		bool contains(uint32_t type, uint32_t module, uint32_t det) const
-		{
-			return map.find({type, module, det}) != map.end();
-		}
+		bool contains(uint32_t type, uint32_t module, uint32_t det) const;
 
 	private:
 		// Custom hash function
