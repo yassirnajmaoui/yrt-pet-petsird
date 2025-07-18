@@ -1,8 +1,10 @@
 #include "datastruct/scanner/Scanner.hpp"
-#include "utils.hpp"
+#include "datastruct/projection/ListMode.hpp"
 #include "utils/Utilities.hpp"
 
-#include "H5Cpp.h"
+#include "PETSIRDListMode.hpp"
+#include "utils.hpp"
+
 #include "binary/protocols.h"
 #include "hdf5.h"
 #include "hdf5/protocols.h"
@@ -42,9 +44,9 @@ int main(int argc, char** argv)
 	    ->check(CLI::ExistingFile);
 
 	app.add_option("--out-scanner-lut", outScannerLUT_fname,
-	               "Output Scanner LUT file");
-	app.add_option("--out-scanner-json", outScannerJSON_fname,
-	               "Output Scanner JSON file");
+	               "Output scanner LUT file");
+	//app.add_option("--out-scanner-json", outScannerJSON_fname,
+	//               "Output scanner JSON file");
 
 	app.add_option("--out-sens", outSensImage_fname,
 	               "Output sensitivity image file");
@@ -62,7 +64,7 @@ int main(int argc, char** argv)
 	 * - The axial dimension of the scanner is the Z dimension
 	 * - The axial dimension in the definition of the crystal box shape is Z
 	 *    (The crystal is aligned with the Z axis)
-	 * - Crystals are always perpendicular to the Z axis
+	 * - Crystals are always perpendicular to the Z axis (no helmets yet)
 	 * - All crystals have the same dimensions
 	 * */
 
@@ -99,7 +101,7 @@ int main(int argc, char** argv)
 	// Crystal properties
 	float crystalSize_z, crystalSize_trans, crystalDepth;
 
-	// flat index for the detectors in the YRT-PET LUT
+	// Flat index for the detectors in the flat unshuffled LUT
 	det_id_t detectorIdx = 0;
 
 	// Properties to measure
@@ -230,6 +232,14 @@ int main(int argc, char** argv)
 	                /*Placeholder: */ 1,
 	                1};
 	scanner.setDetectorSetup(detCoord);
+
+	// TODO: Save the scanner's JSON file
+
+	//ListMode l = yrt::pet::petsird::PETSIRDListMode();
+	// Read the header and get the scanner
+	yrt::pet::petsird::TimeBlockCollection timeBlocks;
+	timeBlocks.reserve(50ull<<10);
+	const bool readingTimeBlock = reader.ReadTimeBlocks(timeBlocks);
 
 	return 0;
 }

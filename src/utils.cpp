@@ -11,8 +11,9 @@
 ::petsird::Coordinate
     yrt::pet::petsird::getCentroid(const ::petsird::BoxShape& box)
 {
-	size_t numCorners = box.corners.size();
-	::petsird::Coordinate centroid;
+	constexpr size_t numCorners = box.corners.size();
+
+	::petsird::Coordinate centroid{};
 	for (size_t i = 0; i < numCorners; ++i)
 	{
 		for (int dim = 0; dim < 3; dim++)
@@ -32,15 +33,16 @@ petsird::Coordinate yrt::pet::petsird::transforms_coord(
     const ::petsird::RigidTransformation& transform,
     const ::petsird::Coordinate& coord)
 {
-	xt::xarray<float> hom = xt::linalg::dot(
+	const xt::xarray<float> hom = xt::linalg::dot(
 	    ::petsird_helpers::geometry::transform_to_mat44(transform),
 	    ::petsird_helpers::geometry::coordinate_to_homogeneous(coord));
 	return ::petsird_helpers::geometry::homogeneous_to_coordinate(hom);
 }
 
-std::tuple<std::shared_ptr<DetCoord>, std::vector<size_t>, size_t, size_t>
-    yrt::pet::petsird::toDetCoord(std::vector<Vector3D>& points,
-                                  std::vector<Vector3D>& orientations)
+std::tuple<std::shared_ptr<DetCoord>,
+           yrt::pet::petsird::DetectorCorrespondenceMap, size_t, size_t>
+    yrt::pet::petsird::toDetCoord(const std::vector<Vector3D>& points,
+                                  const std::vector<Vector3D>& orientations)
 {
 	struct IndexedPoint
 	{
@@ -118,7 +120,7 @@ std::tuple<std::shared_ptr<DetCoord>, std::vector<size_t>, size_t, size_t>
 	// Return DetCoord
 	auto detCoord = std::make_shared<DetCoordOwned>();
 	detCoord->allocate(points.size());
-	std::vector<size_t> originalIndices(points.size());
+	DetectorCorrespondenceMap originalIndices(points.size());
 	size_t detectorId = 0;
 
 	for (size_t ring_i = 0; ring_i < numRings; ring_i++)
@@ -130,8 +132,8 @@ std::tuple<std::shared_ptr<DetCoord>, std::vector<size_t>, size_t, size_t>
 			detCoord->setYpos(detectorId, rings[ring_i][det_i].point.y);
 			detCoord->setZpos(detectorId, rings[ring_i][det_i].point.z);
 
-			size_t originalIndex = rings[ring_i][det_i].originalIndex;
-			Vector3D originalOrientation = orientations[originalIndex];
+			const size_t originalIndex = rings[ring_i][det_i].originalIndex;
+			const Vector3D originalOrientation = orientations[originalIndex];
 			originalIndices[detectorId] = originalIndex;
 
 			detCoord->setXorient(detectorId, originalOrientation.x);
@@ -149,7 +151,7 @@ std::tuple<float, float, float, Vector3D>
     yrt::pet::petsird::getCrystalInfo(const ::petsird::BoxShape& box)
 {
 	// Get depth dimension
-	auto vertices = box.corners;
+	const auto vertices = box.corners;
 
 	bool isFirstCheck = true;
 	float largestDistance{};
@@ -186,9 +188,9 @@ std::tuple<float, float, float, Vector3D>
 
 			Vector3D edgeVector = {b.c[0] - a.c[0], b.c[1] - a.c[1],
 			                       b.c[2] - a.c[2]};
-			float distance = std::sqrt(edgeVector.x * edgeVector.x +
-			                           edgeVector.y * edgeVector.y +
-			                           edgeVector.z * edgeVector.z);
+			const float distance = std::sqrt(edgeVector.x * edgeVector.x +
+			                                 edgeVector.y * edgeVector.y +
+			                                 edgeVector.z * edgeVector.z);
 
 			if (isFirstCheck)
 			{
@@ -238,8 +240,11 @@ std::tuple<float, float, float, Vector3D>
 	float crystalSize_z = zMax - zMin;
 
 	// Get the transaxial size (by first getting the transaxial direction)
-	Vector3D zDir{0, 0, 1};
-	Vector3D thirdDir =
+
+	// This assumes the Z direction is not the largest unit vector orientation
+	constexpr Vector3D zDir{0, 0, 1};
+
+	const Vector3D thirdDir =
 	    zDir.crossProduct(largestDistanceUnitVector).getNormalized();
 
 	float minProj{}, maxProj{};
@@ -266,4 +271,35 @@ std::tuple<float, float, float, Vector3D>
 
 	return {crystalSize_z, crystalSize_trans, largestDistance,
 	        largestDistanceUnitVector};
+}
+
+std::array<petsird::ExpandedDetectionBin, 2>
+    petsird_helpers::expand_detection_bin_pair(
+        const ScannerInformation& scanner,
+        const std::array<TypeOfModule, 2>& type_of_module_pair,
+        const std::array<DetectionBin, 2>& detection_bin_pair)
+{
+
+	assert(type_of_module < scanner.scanner_geometry.replicated_modules.size());
+
+	std::array<ExpandedDetectionBin, 2> result;
+
+	for (int det_i = 0; det_i < 2; det_i++)
+	{
+		const auto& rep_module =
+		    scanner.scanner_geometry
+		        .replicated_modules[type_of_module_pair[det_i]];
+		const auto& energy_bin_edges =
+		    scanner.event_energy_bin_edges[type_of_module_pair[det_i]];
+
+		const uint32_t num_en = energy_bin_edges.NumberOfBins();
+		const uint32_t num_el_per_module =
+		    rep_module.object.detecting_elements.transforms.size();
+
+		const auto& bin = detection_bin_pair[det_i];
+		const auto det = bin / num_en;
+		result[det_i] = {det / num_el_per_module, det % num_el_per_module,
+		                 bin % num_en};
+	}
+	return result;
 }

@@ -25,7 +25,9 @@ set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp/generated)
 get_filename_component(PETSIRD_dir_REAL ${PETSIRD_dir} REALPATH)
 add_subdirectory(${PETSIRD_dir_REAL} PETSIRD_generated)
 
-add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp utils.cpp)
+set(YRTPET_PETSIRD_SOURCES utils.cpp PETSIRDListMode.cpp)
+
+add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp ${YRTPET_PETSIRD_SOURCES})
 
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC petsird_generated)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC yrtpet)
