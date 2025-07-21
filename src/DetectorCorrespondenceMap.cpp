@@ -1,16 +1,16 @@
 #include "DetectorCorrespondenceMap.hpp"
 
-void yrt::pet::petsird::DetectorCorrespondenceMap::addMapping(uint32_t type,
+void yrt::petsird::DetectorCorrespondenceMap::addMapping(uint32_t type,
                                                               uint32_t module,
                                                               uint32_t det,
-                                                              det_id_t value)
+                                                              yrt::det_id_t value)
 {
 	const DetectorKey key{type, module, det};
 	map[key] = value;
 	reverseMap[value] = key;
 }
 
-det_id_t yrt::pet::petsird::DetectorCorrespondenceMap::getFlatIndex(
+yrt::det_id_t yrt::petsird::DetectorCorrespondenceMap::getFlatIndex(
     uint32_t type, uint32_t module, uint32_t det) const
 {
 	const DetectorKey key{type, module, det};
@@ -23,8 +23,8 @@ det_id_t yrt::pet::petsird::DetectorCorrespondenceMap::getFlatIndex(
 }
 
 std::tuple<uint32_t, uint32_t, uint32_t>
-    yrt::pet::petsird::DetectorCorrespondenceMap::getDetectorFromFlatIndex(
-        det_id_t value) const
+    yrt::petsird::DetectorCorrespondenceMap::getDetectorFromFlatIndex(
+        yrt::det_id_t value) const
 {
 	const auto it = reverseMap.find(value);
 	if (it == reverseMap.end())
@@ -33,7 +33,7 @@ std::tuple<uint32_t, uint32_t, uint32_t>
 	return std::make_tuple(key.type, key.module, key.det);
 }
 
-bool yrt::pet::petsird::DetectorCorrespondenceMap::contains(uint32_t type,
+bool yrt::petsird::DetectorCorrespondenceMap::contains(uint32_t type,
                                                             uint32_t module,
                                                             uint32_t det) const
 {

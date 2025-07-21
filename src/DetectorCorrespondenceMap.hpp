@@ -1,11 +1,12 @@
 #pragma once
 
-#include "utils/Types.hpp"
+#include "yrt-pet/utils/Types.hpp"
 
 #include <stdexcept>
 #include <unordered_map>
+#include <cstdint>
 
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	class DetectorCorrespondenceMap
 	{
@@ -54,4 +55,4 @@ namespace yrt::pet::petsird
 		std::unordered_map<DetectorKey, det_id_t, DetectorKeyHash> map;
 		std::unordered_map<det_id_t, DetectorKey> reverseMap;
 	};
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird

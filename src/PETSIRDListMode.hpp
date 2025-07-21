@@ -2,10 +2,10 @@
 #pragma once
 
 #include "DetectorCorrespondenceMap.hpp"
-#include "datastruct/projection/ListMode.hpp"
+#include "yrt-pet/datastruct/projection/ListMode.hpp"
 #include "utils.hpp"
 
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	class PETSIRDListMode : public ListMode
 	{

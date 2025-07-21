@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(OpenMP REQUIRED)
+find_package(ZLIB REQUIRED)
 
 #Set the build type to Release if not specified
 if (NOT CMAKE_BUILD_TYPE)
@@ -39,7 +40,6 @@ if (USE_CUDA)
     find_package(CUDAToolkit REQUIRED)
     enable_language(CUDA)
     add_compile_definitions(BUILD_CUDA)
-
 endif (USE_CUDA)
 
 
@@ -55,7 +55,7 @@ add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp ${YRTPE
 
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC petsird_generated)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC yrtpet)
-target_link_libraries(petsird_yrtpet_reconstruct PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(petsird_yrtpet_reconstruct PUBLIC OpenMP::OpenMP_CXX ZLIB::ZLIB)
 
 if (USE_CUDA)
     target_link_libraries(petsird_yrtpet_reconstruct PRIVATE CUDA::cudart CUDA::cuda_driver)

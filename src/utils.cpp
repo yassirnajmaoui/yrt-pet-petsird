@@ -9,8 +9,10 @@
 #include <xtensor-blas/xlinalg.hpp>
 #include <xtensor/xarray.hpp>
 
-::petsird::Coordinate
-    yrt::pet::petsird::getCentroid(const ::petsird::BoxShape& box)
+#include <vector>
+
+petsird::Coordinate
+    yrt::petsird::getCentroid(const ::petsird::BoxShape& box)
 {
 	const size_t numCorners = box.corners.size();
 
@@ -30,7 +32,7 @@
 	return centroid;
 }
 
-petsird::Coordinate yrt::pet::petsird::transforms_coord(
+petsird::Coordinate yrt::petsird::transforms_coord(
     const ::petsird::RigidTransformation& transform,
     const ::petsird::Coordinate& coord)
 {
@@ -40,8 +42,8 @@ petsird::Coordinate yrt::pet::petsird::transforms_coord(
 	return ::petsird_helpers::geometry::homogeneous_to_coordinate(hom);
 }
 
-std::tuple<Scanner, yrt::pet::petsird::DetectorCorrespondenceMap>
-    yrt::pet::petsird::toScanner(
+std::tuple<yrt::Scanner, yrt::petsird::DetectorCorrespondenceMap>
+    yrt::petsird::toScanner(
         const ::petsird::ScannerInformation& scannerInfo)
 {
 	struct IndexedPoint
@@ -293,8 +295,8 @@ std::tuple<Scanner, yrt::pet::petsird::DetectorCorrespondenceMap>
 	return {scanner, correspondenceMap};
 }
 
-std::tuple<float, float, float, Vector3D>
-    yrt::pet::petsird::getCrystalInfo(const ::petsird::BoxShape& box)
+std::tuple<float, float, float, yrt::Vector3D>
+    yrt::petsird::getCrystalInfo(const ::petsird::BoxShape& box)
 {
 	// Get depth dimension
 	const auto vertices = box.corners;

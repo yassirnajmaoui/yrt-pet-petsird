@@ -2,8 +2,7 @@
 
 #include <petsird_helpers.h>
 
-
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	PETSIRDListMode::PETSIRDListMode(
 	    const Scanner& pr_scanner,

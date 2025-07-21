@@ -1,7 +1,7 @@
-#include "datastruct/projection/ListMode.hpp"
-#include "datastruct/scanner/Scanner.hpp"
-#include "utils/ReconstructionUtils.hpp"
-#include "utils/Utilities.hpp"
+#include "yrt-pet/datastruct/projection/ListMode.hpp"
+#include "yrt-pet/datastruct/scanner/Scanner.hpp"
+#include "yrt-pet/utils/ReconstructionUtils.hpp"
+#include "yrt-pet/utils/Utilities.hpp"
 
 #include "PETSIRDListMode.hpp"
 #include "utils.hpp"
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	    ->required()
 	    ->check(CLI::ExistingFile);
 
-	if (Util::compiledWithCuda())
+	if (yrt::util::compiledWithCuda())
 	{
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 
 	// Prepare detCoord
 	auto [scanner, correspondenceMap] =
-	    yrt::pet::petsird::toScanner(scannerInfo);
+	    yrt::petsird::toScanner(scannerInfo);
 
 	if (!outScannerLUT_fname.empty())
 	{
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 
 	// ListMode l = yrt::pet::petsird::PETSIRDListMode();
 	//  Read the header and get the scanner
-	yrt::pet::petsird::TimeBlockCollection timeBlocks;
+	yrt::petsird::TimeBlockCollection timeBlocks;
 	timeBlocks.reserve(50ull << 10);
 
 	const bool readingTimeBlock = reader.ReadTimeBlocks(timeBlocks);
@@ -131,15 +131,15 @@ int main(int argc, char** argv)
 		throw std::runtime_error("Error while reading time blocks");
 	}
 
-	yrt::pet::petsird::PETSIRDListMode lm(scanner, scannerInfo,
+	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo,
 	                                      correspondenceMap, timeBlocks);
 
 	// Initialize reconstruction
-	auto osem = Util::createOSEM(scanner, useGPU);
+	auto osem = yrt::util::createOSEM(scanner, useGPU);
 	osem->setListModeEnabled(true);
 
 	// Read image parameters
-	ImageParams params{imageParams_fname};
+	yrt::ImageParams params{imageParams_fname};
 	osem->setImageParams(params);
 
 	if (!psfKernel_fname.empty())
@@ -147,17 +147,18 @@ int main(int argc, char** argv)
 		osem->addImagePSF(psfKernel_fname);
 	}
 
-	std::unique_ptr<Image> attImage;
+	std::unique_ptr<yrt::Image> attImage;
 	if (!attImage_fname.empty())
 	{
-		attImage = std::make_unique<ImageOwned>(attImage_fname);
+		attImage = std::make_unique<yrt::ImageOwned>(attImage_fname);
 		osem->setAttenuationImage(attImage.get());
 	}
 
-	std::vector<std::unique_ptr<Image>> sensImages;
+	std::vector<std::unique_ptr<yrt::Image>> sensImages;
 	if (!sensImage_fname.empty())
 	{
-		sensImages.push_back(std::make_unique<ImageOwned>(sensImage_fname));
+		sensImages.push_back(
+		    std::make_unique<yrt::ImageOwned>(sensImage_fname));
 	}
 	else
 	{

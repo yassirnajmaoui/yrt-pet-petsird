@@ -2,11 +2,11 @@
 #pragma once
 
 #include "DetectorCorrespondenceMap.hpp"
-#include "datastruct/scanner/Scanner.hpp"
+#include "yrt-pet/datastruct/scanner/Scanner.hpp"
 #include "petsird_helpers.h"
 #include "types.h"
 
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	// tolerance of 0.1 micron for these calculations:
 	constexpr float EPSILON = 1e-4;
