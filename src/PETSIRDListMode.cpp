@@ -20,6 +20,11 @@ namespace yrt::petsird
 	{
 		// TODO: Increase capacity of the std::vectors to increase performance
 
+		// const size_t numEventsEstimate = ???
+		// m_timestamps.reserve(numEventsEstimate);
+		// m_d0s.reserve(numEventsEstimate);
+		// m_d1s.reserve(numEventsEstimate);
+
 		const size_t numTimeBlocks = timeBlocks.size();
 		timestamp_t currentTime{};
 
@@ -32,6 +37,7 @@ namespace yrt::petsird
 				    std::get<::petsird::EventTimeBlock>(timeBlock);
 				currentTime = eventTimeBlock.time_interval.start;
 
+				// Here we only accumulate prompt events
 				const auto& promptEvents = eventTimeBlock.prompt_events;
 
 				const size_t numTypesOfModules = promptEvents.size();

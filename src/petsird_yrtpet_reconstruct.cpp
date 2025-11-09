@@ -149,6 +149,9 @@ int main(int argc, char** argv)
 		osem->addImagePSF(psfKernel_fname);
 	}
 
+	// TODO: Make this optional
+	// osem->setSensitivityHistogram(&norm);
+
 	std::unique_ptr<yrt::Image> attImage;
 	if (!attImage_fname.empty())
 	{
