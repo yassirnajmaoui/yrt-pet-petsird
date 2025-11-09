@@ -5,6 +5,7 @@
 #include "utils.hpp"
 #include "DetectorCorrespondenceMap.hpp"
 #include "petsird_helpers/geometry.h"
+#include "yrt-pet/datastruct/scanner/DetCoord.hpp"
 
 #include <xtensor-blas/xlinalg.hpp>
 #include <xtensor/xarray.hpp>
@@ -248,7 +249,7 @@ std::tuple<yrt::Scanner, yrt::petsird::DetectorCorrespondenceMap>
 	}
 
 	// Return DetCoord
-	auto detCoord = std::make_shared<DetCoordOwned>();
+	auto detCoord = std::make_shared<yrt::DetCoordOwned>();
 	detCoord->allocate(totalNumDets);
 	detId = 0;
 

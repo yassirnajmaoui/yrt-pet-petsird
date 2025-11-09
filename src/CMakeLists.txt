@@ -45,7 +45,7 @@ endif (USE_CUDA)
 
 set(CURRENT_PATH ./)
 get_filename_component(CURRENT_PATH_REAL ${CURRENT_PATH} REALPATH)
-set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp/generated)
+set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp)
 get_filename_component(PETSIRD_dir_REAL ${PETSIRD_dir} REALPATH)
 add_subdirectory(${PETSIRD_dir_REAL} PETSIRD_generated)
 
@@ -62,5 +62,4 @@ if (USE_CUDA)
 endif (USE_CUDA)
 
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir})
-target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/..)
-target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/../helpers/include)
+target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/helpers/include)

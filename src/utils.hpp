@@ -4,7 +4,7 @@
 #include "DetectorCorrespondenceMap.hpp"
 #include "yrt-pet/datastruct/scanner/Scanner.hpp"
 #include "petsird_helpers.h"
-#include "types.h"
+#include "petsird/types.h"
 
 namespace yrt::petsird
 {

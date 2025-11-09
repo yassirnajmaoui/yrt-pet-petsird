@@ -6,13 +6,13 @@
 #include "PETSIRDListMode.hpp"
 #include "utils.hpp"
 
-#include "binary/protocols.h"
+#include "petsird/binary/protocols.h"
 #include "hdf5.h"
-#include "hdf5/protocols.h"
+#include "petsird/hdf5/protocols.h"
 #include "petsird_helpers/create.h"
 #include "petsird_helpers/geometry.h"
-#include "protocols.h"
-#include "types.h"
+#include "petsird/protocols.h"
+#include "petsird/types.h"
 
 #include "CLI11.hpp"
 #include <string>
@@ -46,10 +46,10 @@ int main(int argc, char** argv)
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
 
-	app.add_option("--num-subsets", numSubsets, "Number of subsets")
+	app.add_option("--num_subsets", numSubsets, "Number of subsets")
 	    ->default_val(1);
 
-	app.add_option("--num-iterations", numIterations, "Number of iterations")
+	app.add_option("--num_iterations", numIterations, "Number of iterations")
 	    ->required();
 
 	app.add_option("-p, --params", imageParams_fname, "Image parameters file")
@@ -62,16 +62,16 @@ int main(int argc, char** argv)
 	app.add_option("--att", attImage_fname, "Attenuation image file")
 	    ->check(CLI::ExistingFile);
 
-	app.add_option("--out-scanner-lut", outScannerLUT_fname,
+	app.add_option("--out_scanner_lut", outScannerLUT_fname,
 	               "Output scanner LUT file");
 	// app.add_option("--out-scanner-json", outScannerJSON_fname,
 	//                "Output scanner JSON file");
 
 	app.add_option("--sens", sensImage_fname,
 	               "Pre-existing sensitivity image filename");
-	app.add_option("--out-sens", outSensImage_fname,
+	app.add_option("--out_sens", outSensImage_fname,
 	               "Output sensitivity image file");
-	app.add_option("--out-recon", outImage_fname,
+	app.add_option("--out_recon", outImage_fname,
 	               "Output reconstructed image file")
 	    ->required();
 
@@ -107,8 +107,7 @@ int main(int argc, char** argv)
 	const petsird::ScannerInformation& scannerInfo = header.scanner;
 
 	// Prepare detCoord
-	auto [scanner, correspondenceMap] =
-	    yrt::petsird::toScanner(scannerInfo);
+	auto [scanner, correspondenceMap] = yrt::petsird::toScanner(scannerInfo);
 
 	if (!outScannerLUT_fname.empty())
 	{
@@ -131,8 +130,8 @@ int main(int argc, char** argv)
 		throw std::runtime_error("Error while reading time blocks");
 	}
 
-	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo,
-	                                      correspondenceMap, timeBlocks);
+	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo, correspondenceMap,
+	                                 timeBlocks);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
