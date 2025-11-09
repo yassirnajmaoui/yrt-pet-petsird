@@ -44,4 +44,3 @@ make
 The project compiles into a program names `petsird_yrtpet_reconstruct`, which
 reconstructs from a given PETSIRD list-mode. Run `petsird_yrtpet_reconstruct -h`
 for more information.
-

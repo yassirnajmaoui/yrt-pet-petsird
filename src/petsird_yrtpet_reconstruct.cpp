@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 
 	// TODO: Save the scanner's JSON file
 
-	// ListMode l = yrt::pet::petsird::PETSIRDListMode();
+	// ListMode l = yrt::petsird::PETSIRDListMode();
 	//  Read the header and get the scanner
 	yrt::petsird::TimeBlockCollection timeBlocks;
 	timeBlocks.reserve(50ull << 10);
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo, correspondenceMap,
 	                                 timeBlocks);
 
-	yrt::pet::petsird::PETSIRDNorm norm(scanner, scannerInfo, correspondenceMap);
+	yrt::petsird::PETSIRDNorm norm(scanner, scannerInfo, correspondenceMap);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);

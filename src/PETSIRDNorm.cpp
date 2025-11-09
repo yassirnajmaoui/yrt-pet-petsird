@@ -1,14 +1,15 @@
 #include "PETSIRDNorm.hpp"
 
 #include "petsird_helpers.h"
+#include "yrt-pet/datastruct/scanner/Scanner.hpp"
 
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	PETSIRDNorm::PETSIRDNorm(
 	    const Scanner& pr_scanner,
 	    const ::petsird::ScannerInformation& pr_scannerInfo,
 	    const DetectorCorrespondenceMap& pr_correspondence)
-	    : Histogram3D(pr_scanner),
+	    : yrt::Histogram3D(pr_scanner),
 	      mr_correspondence(pr_correspondence),
 	      mr_scannerInfo(pr_scannerInfo)
 	{
@@ -43,4 +44,4 @@ namespace yrt::pet::petsird
 	}
 
 
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird

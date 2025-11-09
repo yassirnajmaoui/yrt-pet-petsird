@@ -1,10 +1,10 @@
 #pragma once
 
 #include "DetectorCorrespondenceMap.hpp"
-#include "datastruct/projection/Histogram3D.hpp"
-#include "protocols.h"
+#include "yrt-pet/datastruct/projection/Histogram3D.hpp"
+#include "petsird/protocols.h"
 
-namespace yrt::pet::petsird
+namespace yrt::petsird
 {
 	class PETSIRDNorm final : public Histogram3D
 	{
@@ -15,7 +15,7 @@ namespace yrt::pet::petsird
 
 		float getProjectionValue(bin_t binId) const override;
 
-		// N/A
+		// Not applicable (And not used by the reconstruction)
 		void setProjectionValue(bin_t binId, float val) override;
 		void incrementProjection(bin_t binId, float val) override;
 		void clearProjections(float p_value) override;
@@ -25,4 +25,4 @@ namespace yrt::pet::petsird
 		const DetectorCorrespondenceMap mr_correspondence;
 		const ::petsird::ScannerInformation& mr_scannerInfo;
 	};
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird
