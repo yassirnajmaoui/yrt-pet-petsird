@@ -2,9 +2,9 @@
 #pragma once
 
 #include "DetectorCorrespondenceMap.hpp"
-#include "yrt-pet/datastruct/scanner/Scanner.hpp"
-#include "petsird_helpers.h"
 #include "petsird/types.h"
+#include "petsird_helpers.h"
+#include "yrt-pet/datastruct/scanner/Scanner.hpp"
 
 namespace yrt::petsird
 {
@@ -32,7 +32,7 @@ namespace yrt::petsird
 	// - Orientation unit vector
 	std::tuple<float, float, float, Vector3D>
 	    getCrystalInfo(const ::petsird::BoxShape& box);
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird
 
 namespace petsird_helpers
 {

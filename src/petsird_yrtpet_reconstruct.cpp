@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 	    ->default_val(1);
 
 	app.add_option("--num_iterations", numIterations, "Number of iterations")
-	    ->required();
+	    ->default_val(10);
 
 	app.add_option("-p, --params", imageParams_fname, "Image parameters file")
 	    ->required()
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 	               "Pre-existing sensitivity image filename");
 	app.add_option("--out_sens", outSensImage_fname,
 	               "Output sensitivity image file");
-	app.add_option("--out_recon", outImage_fname,
+	app.add_option("-o, --out", outImage_fname,
 	               "Output reconstructed image file")
 	    ->required();
 
