@@ -26,8 +26,13 @@ More information is on https://github.com/ETSInitiative/PETSIRD.
 ```
 git clone <this repository's URL>
 cd yrt-pet-petsird
+git clone <the PETSIRD repository URL>
+cd PETSIRD/model
+yardl generate
+cd ../..
 mkdir build
-cmake ../src -DUSE_CUDA=<ON or OFF>
+cd build
+cmake ../src -DUSE_CUDA=[ON/OFF]
 make
 ```
 
