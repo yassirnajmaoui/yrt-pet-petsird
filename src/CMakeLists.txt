@@ -61,5 +61,5 @@ if (USE_CUDA)
     target_link_libraries(petsird_yrtpet_reconstruct PRIVATE CUDA::cudart CUDA::cuda_driver)
 endif (USE_CUDA)
 
-target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir})
+target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/generated)
 target_include_directories(petsird_yrtpet_reconstruct PUBLIC ${PETSIRD_dir}/helpers/include)
