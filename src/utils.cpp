@@ -428,8 +428,8 @@ std::array<petsird::ExpandedDetectionBin, 2>
         const std::array<TypeOfModule, 2>& type_of_module_pair,
         const std::array<DetectionBin, 2>& detection_bin_pair)
 {
-
-	assert(type_of_module < scanner.scanner_geometry.replicated_modules.size());
+	assert(type_of_module_pair[0] < scanner.scanner_geometry.replicated_modules.size());
+	assert(type_of_module_pair[1] < scanner.scanner_geometry.replicated_modules.size());
 
 	std::array<ExpandedDetectionBin, 2> result;
 

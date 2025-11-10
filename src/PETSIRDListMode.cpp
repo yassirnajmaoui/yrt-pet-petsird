@@ -72,7 +72,8 @@ namespace yrt::petsird
 							    mtype1, d1_expanded.module_index,
 							    d1_expanded.element_index);
 
-							promptEvent.tof_idx;  // TODO: Store TOF value in ps
+							// TODO: Store TOF value in ps
+							// promptEvent.tof_idx;
 
 							// Add to the cumulative vectors
 							m_timestamps.emplace_back(currentTime);

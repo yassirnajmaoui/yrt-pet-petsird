@@ -7,13 +7,13 @@
 #include "PETSIRDNorm.hpp"
 #include "utils.hpp"
 
-#include "petsird/binary/protocols.h"
 #include "hdf5.h"
+#include "petsird/binary/protocols.h"
 #include "petsird/hdf5/protocols.h"
-#include "petsird_helpers/create.h"
-#include "petsird_helpers/geometry.h"
 #include "petsird/protocols.h"
 #include "petsird/types.h"
+#include "petsird_helpers/create.h"
+#include "petsird_helpers/geometry.h"
 
 #include "CLI11.hpp"
 #include <string>
@@ -25,9 +25,11 @@ int main(int argc, char** argv)
 
 	// Variables to hold parsed values
 	bool useGPU;
+	bool useNorm;
 	std::string input_fname;
 	int numSubsets = 0;
 	int numIterations = 0;
+	int numThreads = -1;
 	std::string imageParams_fname;
 	std::string psfKernel_fname;
 	std::string attImage_fname;
@@ -47,6 +49,8 @@ int main(int argc, char** argv)
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
 
+	app.add_option("--num_threads", numThreads, "Number of threads to use");
+
 	app.add_option("--num_subsets", numSubsets, "Number of subsets")
 	    ->default_val(1);
 
@@ -63,6 +67,8 @@ int main(int argc, char** argv)
 	app.add_option("--att", attImage_fname, "Attenuation image file")
 	    ->check(CLI::ExistingFile);
 
+	app.add_flag("--norm", useNorm, "Apply normalisation correction");
+
 	app.add_option("--out_scanner_lut", outScannerLUT_fname,
 	               "Output scanner LUT file");
 	// app.add_option("--out-scanner-json", outScannerJSON_fname,
@@ -78,7 +84,6 @@ int main(int argc, char** argv)
 
 	CLI11_PARSE(app, argc, argv);
 
-	// Your logic here
 	std::cout << "Input PETSIRD file: " << input_fname << std::endl;
 
 	/*
@@ -98,6 +103,7 @@ int main(int argc, char** argv)
 	//  - Add possibility to provide an attenuation image
 	//  - Add normalisation
 
+	yrt::globals::setNumThreads(numThreads);
 
 	// Read PETSIRD FILE
 	auto reader = petsird::binary::PETSIRDReader(input_fname);
@@ -131,10 +137,8 @@ int main(int argc, char** argv)
 		throw std::runtime_error("Error while reading time blocks");
 	}
 
-	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo, correspondenceMap,
-	                                 timeBlocks);
-
-	yrt::petsird::PETSIRDNorm norm(scanner, scannerInfo, correspondenceMap);
+	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
+	    scanner, scannerInfo, correspondenceMap, timeBlocks);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
@@ -149,8 +153,13 @@ int main(int argc, char** argv)
 		osem->addImagePSF(psfKernel_fname);
 	}
 
-	// TODO: Make this optional
-	// osem->setSensitivityHistogram(&norm);
+	std::unique_ptr<yrt::petsird::PETSIRDNorm> norm;
+	if (useNorm)
+	{
+		norm = std::make_unique<yrt::petsird::PETSIRDNorm>(scanner, scannerInfo,
+		                                                   correspondenceMap);
+		osem->setSensitivityHistogram(norm.get());
+	}
 
 	std::unique_ptr<yrt::Image> attImage;
 	if (!attImage_fname.empty())
@@ -172,7 +181,7 @@ int main(int argc, char** argv)
 
 	osem->setSensitivityImages(sensImages);
 
-	osem->setDataInput(&lm);
+	osem->setDataInput(lm.get());
 
 	osem->num_MLEM_iterations = numIterations;
 	osem->num_OSEM_subsets = numSubsets;

@@ -29,15 +29,26 @@ namespace yrt::petsird
 		d1_expandedBin.module_index = std::get<1>(d1_tuple);
 		d1_expandedBin.element_index = std::get<2>(d1_tuple);
 		// TODO: Support energy level
-		auto d1_bin = petsird_helpers::make_detection_bin(mr_scannerInfo, std::get<0>(d1_tuple), d1_expandedBin);
+		auto d1_bin = petsird_helpers::make_detection_bin(
+		    mr_scannerInfo, std::get<0>(d1_tuple), d1_expandedBin);
 
 		::petsird::ExpandedDetectionBin d2_expandedBin{};
 		d2_expandedBin.module_index = std::get<1>(d2_tuple);
 		d2_expandedBin.element_index = std::get<2>(d2_tuple);
 		// TODO: Support energy level
-		auto d2_bin = petsird_helpers::make_detection_bin(mr_scannerInfo, std::get<0>(d2_tuple), d2_expandedBin);
+		auto d2_bin = petsird_helpers::make_detection_bin(
+		    mr_scannerInfo, std::get<0>(d2_tuple), d2_expandedBin);
 
-		return petsird_helpers::get_detection_efficiency(mr_scannerInfo, {std::get<0>(d1_tuple), std::get<1>(d2_tuple)}, d1_bin, d2_bin);
+		float sensitivity = petsird_helpers::get_detection_efficiency(
+		    mr_scannerInfo, {std::get<0>(d1_tuple), std::get<0>(d2_tuple)},
+		    d1_bin, d2_bin);
+
+		if (sensitivity != 1.0 && sensitivity != 0)
+		{
+			std::cout << "Sensitivity: " << sensitivity << std::endl;
+		}
+
+		return sensitivity;
 	}
 
 	void PETSIRDNorm::setProjectionValue(bin_t binId, float val)
