@@ -43,11 +43,6 @@ namespace yrt::petsird
 		    mr_scannerInfo, {std::get<0>(d1_tuple), std::get<0>(d2_tuple)},
 		    d1_bin, d2_bin);
 
-		if (sensitivity != 1.0 && sensitivity != 0)
-		{
-			std::cout << "Sensitivity: " << sensitivity << std::endl;
-		}
-
 		return sensitivity;
 	}
 
