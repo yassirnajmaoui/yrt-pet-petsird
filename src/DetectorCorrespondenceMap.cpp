@@ -1,9 +1,9 @@
 #include "DetectorCorrespondenceMap.hpp"
 
 void yrt::petsird::DetectorCorrespondenceMap::addMapping(uint32_t type,
-                                                              uint32_t module,
-                                                              uint32_t det,
-                                                              yrt::det_id_t value)
+                                                         uint32_t module,
+                                                         uint32_t det,
+                                                         yrt::det_id_t value)
 {
 	const DetectorKey key{type, module, det};
 	map[key] = value;
@@ -34,8 +34,8 @@ std::tuple<uint32_t, uint32_t, uint32_t>
 }
 
 bool yrt::petsird::DetectorCorrespondenceMap::contains(uint32_t type,
-                                                            uint32_t module,
-                                                            uint32_t det) const
+                                                       uint32_t module,
+                                                       uint32_t det) const
 {
 	return map.find({type, module, det}) != map.end();
 }

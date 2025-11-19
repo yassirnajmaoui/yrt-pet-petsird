@@ -4,15 +4,16 @@
 #include "yrt-pet/utils/Utilities.hpp"
 
 #include "PETSIRDListMode.hpp"
+#include "PETSIRDNorm.hpp"
 #include "utils.hpp"
 
-#include "petsird/binary/protocols.h"
 #include "hdf5.h"
+#include "petsird/binary/protocols.h"
 #include "petsird/hdf5/protocols.h"
-#include "petsird_helpers/create.h"
-#include "petsird_helpers/geometry.h"
 #include "petsird/protocols.h"
 #include "petsird/types.h"
+#include "petsird_helpers/create.h"
+#include "petsird_helpers/geometry.h"
 
 #include "CLI11.hpp"
 #include <string>
@@ -24,9 +25,11 @@ int main(int argc, char** argv)
 
 	// Variables to hold parsed values
 	bool useGPU;
+	bool useNorm;
 	std::string input_fname;
 	int numSubsets = 0;
 	int numIterations = 0;
+	int numThreads = -1;
 	std::string imageParams_fname;
 	std::string psfKernel_fname;
 	std::string attImage_fname;
@@ -46,11 +49,13 @@ int main(int argc, char** argv)
 		app.add_flag("--gpu", useGPU, "Use GPU acceleration");
 	}
 
+	app.add_option("--num_threads", numThreads, "Number of threads to use");
+
 	app.add_option("--num_subsets", numSubsets, "Number of subsets")
 	    ->default_val(1);
 
 	app.add_option("--num_iterations", numIterations, "Number of iterations")
-	    ->required();
+	    ->default_val(10);
 
 	app.add_option("-p, --params", imageParams_fname, "Image parameters file")
 	    ->required()
@@ -62,6 +67,8 @@ int main(int argc, char** argv)
 	app.add_option("--att", attImage_fname, "Attenuation image file")
 	    ->check(CLI::ExistingFile);
 
+	app.add_flag("--norm", useNorm, "Apply normalisation correction");
+
 	app.add_option("--out_scanner_lut", outScannerLUT_fname,
 	               "Output scanner LUT file");
 	// app.add_option("--out-scanner-json", outScannerJSON_fname,
@@ -71,13 +78,12 @@ int main(int argc, char** argv)
 	               "Pre-existing sensitivity image filename");
 	app.add_option("--out_sens", outSensImage_fname,
 	               "Output sensitivity image file");
-	app.add_option("--out_recon", outImage_fname,
+	app.add_option("-o, --out", outImage_fname,
 	               "Output reconstructed image file")
 	    ->required();
 
 	CLI11_PARSE(app, argc, argv);
 
-	// Your logic here
 	std::cout << "Input PETSIRD file: " << input_fname << std::endl;
 
 	/*
@@ -97,6 +103,7 @@ int main(int argc, char** argv)
 	//  - Add possibility to provide an attenuation image
 	//  - Add normalisation
 
+	yrt::globals::setNumThreads(numThreads);
 
 	// Read PETSIRD FILE
 	auto reader = petsird::binary::PETSIRDReader(input_fname);
@@ -119,7 +126,7 @@ int main(int argc, char** argv)
 
 	// TODO: Save the scanner's JSON file
 
-	// ListMode l = yrt::pet::petsird::PETSIRDListMode();
+	// ListMode l = yrt::petsird::PETSIRDListMode();
 	//  Read the header and get the scanner
 	yrt::petsird::TimeBlockCollection timeBlocks;
 	timeBlocks.reserve(50ull << 10);
@@ -130,8 +137,8 @@ int main(int argc, char** argv)
 		throw std::runtime_error("Error while reading time blocks");
 	}
 
-	yrt::petsird::PETSIRDListMode lm(scanner, scannerInfo, correspondenceMap,
-	                                 timeBlocks);
+	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
+	    scanner, scannerInfo, correspondenceMap, timeBlocks);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
@@ -144,6 +151,14 @@ int main(int argc, char** argv)
 	if (!psfKernel_fname.empty())
 	{
 		osem->addImagePSF(psfKernel_fname);
+	}
+
+	std::unique_ptr<yrt::petsird::PETSIRDNorm> norm;
+	if (useNorm)
+	{
+		norm = std::make_unique<yrt::petsird::PETSIRDNorm>(scanner, scannerInfo,
+		                                                   correspondenceMap);
+		osem->setSensitivityHistogram(norm.get());
 	}
 
 	std::unique_ptr<yrt::Image> attImage;
@@ -166,7 +181,7 @@ int main(int argc, char** argv)
 
 	osem->setSensitivityImages(sensImages);
 
-	osem->setDataInput(&lm);
+	osem->setDataInput(lm.get());
 
 	osem->num_MLEM_iterations = numIterations;
 	osem->num_OSEM_subsets = numSubsets;

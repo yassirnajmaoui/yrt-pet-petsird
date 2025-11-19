@@ -49,7 +49,7 @@ set(PETSIRD_dir ${CURRENT_PATH_REAL}/../PETSIRD/cpp)
 get_filename_component(PETSIRD_dir_REAL ${PETSIRD_dir} REALPATH)
 add_subdirectory(${PETSIRD_dir_REAL} PETSIRD_generated)
 
-set(YRTPET_PETSIRD_SOURCES utils.cpp PETSIRDListMode.cpp DetectorCorrespondenceMap.cpp)
+set(YRTPET_PETSIRD_SOURCES utils.cpp PETSIRDListMode.cpp PETSIRDNorm.cpp DetectorCorrespondenceMap.cpp)
 
 add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp ${YRTPET_PETSIRD_SOURCES})
 

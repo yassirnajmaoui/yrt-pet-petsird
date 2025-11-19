@@ -428,8 +428,8 @@ std::array<petsird::ExpandedDetectionBin, 2>
         const std::array<TypeOfModule, 2>& type_of_module_pair,
         const std::array<DetectionBin, 2>& detection_bin_pair)
 {
-
-	assert(type_of_module < scanner.scanner_geometry.replicated_modules.size());
+	assert(type_of_module_pair[0] < scanner.scanner_geometry.replicated_modules.size());
+	assert(type_of_module_pair[1] < scanner.scanner_geometry.replicated_modules.size());
 
 	std::array<ExpandedDetectionBin, 2> result;
 
@@ -451,4 +451,14 @@ std::array<petsird::ExpandedDetectionBin, 2>
 		                 bin % num_en};
 	}
 	return result;
+}
+
+float petsird_helpers::get_detection_efficiency_from_pair(
+    const ScannerInformation& scanner,
+    const std::array<TypeOfModule, 2>& type_of_module_pair,
+    const std::array<uint32_t, 2>& module_index_pair,
+    const std::array<uint32_t, 2>& element_index_pair)
+{
+	// TODO: Implement this based on the equivalent in petsird_helpers.h
+	return -1.0;
 }
