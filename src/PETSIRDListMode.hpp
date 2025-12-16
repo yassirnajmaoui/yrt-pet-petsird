@@ -23,6 +23,11 @@ namespace yrt::petsird
 		size_t count() const override;
 		timestamp_t getTimestamp(bin_t id) const override;
 
+		bool setTOFSwitch(bool tof_enabled)
+		{
+			tof_switch = tof_enabled;
+			return tof_switch;
+		}
 		bool hasTOF() const override;
 		float getTOFValue(bin_t id) const override;
 
@@ -35,5 +40,6 @@ namespace yrt::petsird
 		std::vector<det_id_t> m_d1s;            // index in the YRT-PET LUT
 		std::vector<float> m_tofs;              // in ps
 		                                        // TODO: Motion
+		bool tof_switch = false;
 	};
 }  // namespace yrt::pet::petsird

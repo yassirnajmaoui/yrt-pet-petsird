@@ -24,6 +24,7 @@ int main(int argc, char** argv)
 	CLI::App app{"PETSIRD reconstruction executable using YRT-PET"};
 
 	// Variables to hold parsed values
+	bool useTOF;
 	bool useGPU;
 	bool useNorm;
 	std::string input_fname;
@@ -68,6 +69,8 @@ int main(int argc, char** argv)
 	    ->check(CLI::ExistingFile);
 
 	app.add_flag("--norm", useNorm, "Apply normalisation correction");
+
+	app.add_flag("--tof", useTOF, "Use TOF information");
 
 	app.add_option("--out_scanner_lut", outScannerLUT_fname,
 	               "Output scanner LUT file");
@@ -139,6 +142,7 @@ int main(int argc, char** argv)
 
 	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
 	    scanner, scannerInfo, correspondenceMap, timeBlocks);
+	lm->setTOFSwitch(useTOF);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
@@ -186,6 +190,12 @@ int main(int argc, char** argv)
 	osem->num_MLEM_iterations = numIterations;
 	osem->num_OSEM_subsets = numSubsets;
 
+	if (useTOF)
+	{
+		float tof_resolution_ps= scannerInfo.tof_resolution[0][0]*2/0.3;
+		printf("TOF enabled in reconstruction using TOF resolution: %.2f ps\n", tof_resolution_ps);
+		osem->addTOF(tof_resolution_ps, 3);  // TODO: Read actual TOF resolution from file
+	}
 	osem->reconstruct(outImage_fname);
 
 	std::cout << "Done." << std::endl;
