@@ -1,6 +1,8 @@
-**/build*/
-**/__pycache__/
-**/.idea/
+build/
+input/
+output/
+PETSIRD/
+*.py
 
 # Common editor backups
 ~$*
