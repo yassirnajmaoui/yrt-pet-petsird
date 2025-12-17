@@ -1,8 +1,8 @@
 #pragma once
 
 #include "DetectorCorrespondenceMap.hpp"
-#include "yrt-pet/datastruct/projection/ListMode.hpp"
 #include "utils.hpp"
+#include "yrt-pet/datastruct/projection/ListMode.hpp"
 
 namespace yrt::petsird
 {
@@ -12,7 +12,8 @@ namespace yrt::petsird
 		PETSIRDListMode(const Scanner& pr_scanner,
 		                const ::petsird::ScannerInformation& pr_scannerInfo,
 		                const DetectorCorrespondenceMap& pr_correspondence,
-		                const TimeBlockCollection& pr_timeBlocks);
+		                const TimeBlockCollection& pr_timeBlocks,
+		                bool useTOF = false);
 
 		// Appends the events in the given time blocks into the list of events
 		void readTimeBlocks(const TimeBlockCollection& timeBlocks);
@@ -35,5 +36,6 @@ namespace yrt::petsird
 		std::vector<det_id_t> m_d1s;            // index in the YRT-PET LUT
 		std::vector<float> m_tofs;              // in ps
 		                                        // TODO: Motion
+		bool m_useTOF;
 	};
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird

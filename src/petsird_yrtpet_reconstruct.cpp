@@ -24,6 +24,7 @@ int main(int argc, char** argv)
 	CLI::App app{"PETSIRD reconstruction executable using YRT-PET"};
 
 	// Variables to hold parsed values
+	bool useTOF;
 	bool useGPU;
 	bool useNorm;
 	std::string input_fname;
@@ -69,6 +70,8 @@ int main(int argc, char** argv)
 
 	app.add_flag("--norm", useNorm, "Apply normalisation correction");
 
+	app.add_flag("--tof", useTOF, "Use TOF information");
+
 	app.add_option("--out_scanner_lut", outScannerLUT_fname,
 	               "Output scanner LUT file");
 	// app.add_option("--out-scanner-json", outScannerJSON_fname,
@@ -98,10 +101,6 @@ int main(int argc, char** argv)
 
 	// TODO:
 	//  - Make this script compatible with HDF5 files
-	//  - Read TOF resolution from the PETSIRD file and add it in "addTOF"
-	//  - Convert TOF indices into values in picoseconds and use them for recon
-	//  - Add possibility to provide an attenuation image
-	//  - Add normalisation
 
 	yrt::globals::setNumThreads(numThreads);
 
@@ -138,7 +137,7 @@ int main(int argc, char** argv)
 	}
 
 	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
-	    scanner, scannerInfo, correspondenceMap, timeBlocks);
+	    scanner, scannerInfo, correspondenceMap, timeBlocks, useTOF);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
@@ -185,6 +184,13 @@ int main(int argc, char** argv)
 
 	osem->num_MLEM_iterations = numIterations;
 	osem->num_OSEM_subsets = numSubsets;
+
+	if (useTOF)
+	{
+		float tofResolution_ps =
+		    scannerInfo.tof_resolution[0][0] * 2.0f / yrt::SPEED_OF_LIGHT_MM_PS;
+		osem->addTOF(tofResolution_ps, 5);
+	}
 
 	osem->reconstruct(outImage_fname);
 

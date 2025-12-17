@@ -14,15 +14,18 @@ More information is on https://github.com/ETSInitiative/PETSIRD.
 
 1. Compile or download the binaries for
    [YRT-PET](https://github.com/YaleBioImaging/yrt-pet).
-2. Make sure your environment has the dependencies that PETSIRD requires
+2. Make sure your environment has the dependencies that
+   [PETSIRD](https://github.com/ETSInitiative/PETSIRD) requires
 3. Put the `libyrtpet.a` library in a directory visible to your linker and
-   compiler
-   and YRT-PET's `include` folder in a directory visible to your compiler.
-    1. Note: The compiler reads the `CPLUS_INCLUDE_PATH` (for the includes) and
+   compiler and YRT-PET's `include` folder in a directory visible to your
+   compiler.
+    - Note: The compiler reads the `CPLUS_INCLUDE_PATH` (for the includes) and
        `LIBRARY_PATH` (for the libraries). The linker reads `LD_LIBRARY_PATH` to
        link with other libraries.
+    - Note: This step is automated if you run ``cmake --install .`` from the
+       from your [YRT-PET](https://github.com/YaleBioImaging/yrt-pet) build
+       directory
 4. Run:
-
 ```
 git clone <this repository's URL>
 cd yrt-pet-petsird
@@ -35,7 +38,6 @@ cd build
 cmake ../src -DUSE_CUDA=[ON/OFF]
 make
 ```
-
 5. The `USE_CUDA` option allows GPU reconstruction. Note that if you compiled
    YRT-PET with `USE_CUDA=OFF`, you might get compilation errors.
 

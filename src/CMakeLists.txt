@@ -56,6 +56,8 @@ add_executable(petsird_yrtpet_reconstruct petsird_yrtpet_reconstruct.cpp ${YRTPE
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC petsird_generated)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC yrtpet)
 target_link_libraries(petsird_yrtpet_reconstruct PUBLIC OpenMP::OpenMP_CXX ZLIB::ZLIB)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+target_link_libraries(petsird_yrtpet_reconstruct PRIVATE Python3::Python)
 
 if (USE_CUDA)
     target_link_libraries(petsird_yrtpet_reconstruct PRIVATE CUDA::cudart CUDA::cuda_driver)
