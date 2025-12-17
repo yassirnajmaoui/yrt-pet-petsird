@@ -37,8 +37,6 @@ namespace yrt::petsird
 				const auto& eventTimeBlock =
 				    std::get<::petsird::EventTimeBlock>(timeBlock);
 				currentTime = eventTimeBlock.time_interval.start;
-				// endTime = eventTimeBlock.time_interval.stop;
-				// tof_value = float((endTime - currentTime) * 1.0e9);
 
 				// Here we only accumulate prompt events
 				const auto& promptEvents = eventTimeBlock.prompt_events;
