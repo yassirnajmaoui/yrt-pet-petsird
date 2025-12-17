@@ -1,6 +1,6 @@
 **/build*/
--**/__pycache__/
--**/.idea/
+**/__pycache__/
+**/.idea/
 
 # Common editor backups
 ~$*
