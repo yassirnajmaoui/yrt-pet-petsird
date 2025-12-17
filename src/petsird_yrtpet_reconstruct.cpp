@@ -101,10 +101,6 @@ int main(int argc, char** argv)
 
 	// TODO:
 	//  - Make this script compatible with HDF5 files
-	//  - Read TOF resolution from the PETSIRD file and add it in "addTOF"
-	//  - Convert TOF indices into values in picoseconds and use them for recon
-	//  - Add possibility to provide an attenuation image
-	//  - Add normalisation
 
 	yrt::globals::setNumThreads(numThreads);
 
@@ -141,8 +137,7 @@ int main(int argc, char** argv)
 	}
 
 	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
-	    scanner, scannerInfo, correspondenceMap, timeBlocks);
-	lm->setTOFSwitch(useTOF);
+	    scanner, scannerInfo, correspondenceMap, timeBlocks, useTOF);
 
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
@@ -192,10 +187,11 @@ int main(int argc, char** argv)
 
 	if (useTOF)
 	{
-		float tof_resolution_ps= scannerInfo.tof_resolution[0][0]*2/0.3;
-		printf("TOF enabled in reconstruction using TOF resolution: %.2f ps\n", tof_resolution_ps);
-		osem->addTOF(tof_resolution_ps, 3);  // TODO: Read actual TOF resolution from file
+		float tofResolution_ps =
+		    scannerInfo.tof_resolution[0][0] * 2.0f / yrt::SPEED_OF_LIGHT_MM_PS;
+		osem->addTOF(tofResolution_ps, 5);
 	}
+
 	osem->reconstruct(outImage_fname);
 
 	std::cout << "Done." << std::endl;

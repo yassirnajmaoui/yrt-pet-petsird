@@ -8,10 +8,11 @@ namespace yrt::petsird
 	    const Scanner& pr_scanner,
 	    const ::petsird::ScannerInformation& pr_scannerInfo,
 	    const DetectorCorrespondenceMap& pr_correspondence,
-	    const TimeBlockCollection& pr_timeBlocks)
+	    const TimeBlockCollection& pr_timeBlocks, bool useTOF)
 	    : ListMode(pr_scanner),
 	      mr_correspondence(pr_correspondence),
-	      mr_scannerInfo(pr_scannerInfo)
+	      mr_scannerInfo(pr_scannerInfo),
+	      m_useTOF(useTOF)
 	{
 		readTimeBlocks(pr_timeBlocks);
 	}
@@ -27,7 +28,6 @@ namespace yrt::petsird
 
 		const size_t numTimeBlocks = timeBlocks.size();
 		timestamp_t currentTime{};
-		float tof_value_ps, tof_value_mm;
 
 		for (size_t timeBlock_i = 0; timeBlock_i < numTimeBlocks; timeBlock_i++)
 		{
@@ -64,6 +64,7 @@ namespace yrt::petsird
 						    promptEvents_mtype0[mtype1];
 						for (const auto& promptEvent : promptEvents_mtype01)
 						{
+							// Detector pair
 							auto [d0_expanded, d1_expanded] =
 							    petsird_helpers::expand_detection_bin_pair(
 							        mr_scannerInfo, {mtype0, mtype1},
@@ -75,21 +76,21 @@ namespace yrt::petsird
 							    mtype1, d1_expanded.module_index,
 							    d1_expanded.element_index);
 
-							// TODO: Store TOF value in ps
-							// promptEvent.tof_idx;
+							// TOF value
+							const float tofValue_mm =
+							    0.5f *
+							    (mr_scannerInfo.tof_bin_edges[mtype0][mtype1]
+							         .edges[promptEvent.tof_idx + 1] +
+							     mr_scannerInfo.tof_bin_edges[mtype0][mtype1]
+							         .edges[promptEvent.tof_idx]);  // in mm
+							const float tofValue_ps =
+							    tofValue_mm * 2.0f / 0.299f;  // in ps
 
 							// Add to the cumulative vectors
 							m_timestamps.emplace_back(currentTime);
 							m_d0s.emplace_back(d0flatIdx);
 							m_d1s.emplace_back(d1flatIdx);
-							tof_value_mm = 0.5f*(mr_scannerInfo.tof_bin_edges[mtype0][mtype1].edges[promptEvent.tof_idx+1]+mr_scannerInfo.tof_bin_edges[mtype0][mtype1].edges[promptEvent.tof_idx]); // in mm
-							tof_value_ps = tof_value_mm*2/0.299; // in ps
-							m_tofs.emplace_back(tof_value_ps);
-							// if (m_tofs.size()<10 && m_tofs.size()>0)
-							// {
-							// 	printf("TOF value: %f ps\n", tof_value_ps);
-							// }
-
+							m_tofs.emplace_back(tofValue_ps);
 						}
 					}
 				}
@@ -124,19 +125,17 @@ namespace yrt::petsird
 
 	bool PETSIRDListMode::hasTOF() const
 	{
-		// TODO: Figure out how to read TOF value in ps from idx
-		return tof_switch;
+		return m_useTOF;
 	}
 
 	float PETSIRDListMode::getTOFValue(bin_t id) const
 	{
-		(void) id;
-		// return 0;  // Will be ignored because of hasTOF
-		if(tof_switch)
+		if (m_useTOF)
+		{
 			return m_tofs[id];
-		else
-			return 0;
+		}
+		return 0;
 	}
 
 
-}  // namespace yrt::pet::petsird
+}  // namespace yrt::petsird
