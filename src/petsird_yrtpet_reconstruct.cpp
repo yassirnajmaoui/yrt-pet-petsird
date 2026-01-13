@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	// ListMode l = yrt::petsird::PETSIRDListMode();
 	//  Read the header and get the scanner
 	yrt::petsird::TimeBlockCollection timeBlocks;
-	timeBlocks.reserve(50ull << 10);
+	timeBlocks.reserve(1ull << 31);
 
 	const bool readingTimeBlock = reader.ReadTimeBlocks(timeBlocks);
 	if (!readingTimeBlock)
