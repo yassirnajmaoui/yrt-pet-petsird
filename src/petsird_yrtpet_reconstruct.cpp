@@ -139,6 +139,11 @@ int main(int argc, char** argv)
 	auto lm = std::make_unique<yrt::petsird::PETSIRDListMode>(
 	    scanner, scannerInfo, correspondenceMap, timeBlocks, useTOF);
 
+	if (lm->count() == 0)
+	{
+		throw std::runtime_error("The list-mode is empty");
+	}
+
 	// Initialize reconstruction
 	auto osem = yrt::util::createOSEM(scanner, useGPU);
 	osem->setListModeEnabled(true);
